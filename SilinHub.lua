@@ -1,6 +1,7 @@
--- SilinHub | Delta Executor
+-- EnderHub | Delta Executor
 -- Created By @SilinHubInfo (telegram)
--- Version: 1.0
+-- Game: 99 Nights in the Forest
+-- Version: 2.0
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -12,10 +13,27 @@ local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
+-- ========== ПРОВЕРКА ИГРЫ ==========
+local GAME_NAME = "99 Nights in the Forest"
+local function IsCorrectGame()
+    local ok, info = pcall(function()
+        return game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+    end)
+    if ok and info and info.Name then
+        return string.find(info.Name:lower(), "99 nights") ~= nil
+    end
+    return string.find(game.Name:lower(), "99 nights") ~= nil
+end
+
+if not IsCorrectGame() then
+    return
+end
+
 -- ========== НАСТРОЙКИ ==========
-local KEY_CORRECT = "silinhublolxd"
+local KEY_CORRECT = "EnderHubOpenYaaY"
 local LOAD_TIME = 6
 local LANG_WAIT = 10
+local HUB_NAME = "EnderHub"
 
 local CONFIG = {
     Key = "",
@@ -23,23 +41,31 @@ local CONFIG = {
     Fly = false,
     Noclip = false,
     Speed = 20,
-    Esp = false,
-    EspColor = "Red",
+    Aimbot = false,
+    TriggerBot = false,
+    KillAura = false,
+    KillAuraRange = 5,
+    EspPlayers = false,
+    EspPlayersColor = "Green",
+    EspMonsters = false,
+    EspMonstersColor = "Red",
+    EspNPC = false,
+    EspNPCColor = "Yellow",
 }
 
 -- ========== СОХРАНЕНИЕ ==========
 local function SaveConfig()
     if writefile then
         pcall(function()
-            writefile("SilinHub_Config.json", HttpService:JSONEncode(CONFIG))
+            writefile("EnderHub_Config.json", HttpService:JSONEncode(CONFIG))
         end)
     end
 end
 
 local function LoadConfig()
-    if isfile and isfile("SilinHub_Config.json") then
+    if isfile and isfile("EnderHub_Config.json") then
         pcall(function()
-            local data = HttpService:JSONDecode(readfile("SilinHub_Config.json"))
+            local data = HttpService:JSONDecode(readfile("EnderHub_Config.json"))
             for k, v in pairs(data) do
                 CONFIG[k] = v
             end
@@ -51,8 +77,10 @@ LoadConfig()
 
 -- ========== УДАЛЕНИЕ СТАРОГО UI ==========
 local function CleanupOldUI()
-    local old = CoreGui:FindFirstChild("SilinHubUI")
+    local old = CoreGui:FindFirstChild("EnderHubUI")
     if old then old:Destroy() end
+    local oldBtn = CoreGui:FindFirstChild("EnderHubToggle")
+    if oldBtn then oldBtn:Destroy() end
 end
 
 CleanupOldUI()
@@ -60,48 +88,62 @@ CleanupOldUI()
 -- ========== ПЕРЕВОДЫ ==========
 local L = {
     English = {
-        Loading = "SilinHub are loading...",
+        Loading = "EnderHub are loading...",
         WriteKey = "Write key here",
         Use = "Use",
         Wait = "Please Wait",
         General = "General",
-        ControlEurope = "ControlEurope",
-        Esp = "Esp",
-        Upgrade = "Upgrade",
+        Combat = "Combat",
+        Visual = "Visual",
         Language = "Language",
         Devs = "Devs",
         Fly = "Fly",
         Noclip = "Noclip",
         SpeedHack = "SpeedHack",
-        SpeedMin = "Min: 20",
-        SpeedMax = "Max: 150",
-        EspColor = "Esp Color",
-        Red = "Red", Green = "Green", Blue = "Blue", Yellow = "Yellow", Orange = "Orange",
+        Aimbot = "Aimbot",
+        TriggerBot = "TriggerBot",
+        KillAura = "KillAura",
+        Range = "Range (1-10)",
+        EspPlayers = "Esp Players",
+        EspItems = "Esp Items",
+        EspMonsters = "Esp Monsters",
+        EspNPC = "Esp NPC",
         InWork = "In work",
+        Color = "Color",
         CreatedBy = "Created By @SilinHubInfo (telegram)",
         CreatedByShort = "Created By @SilinHubInfo (tg)",
+        Green = "Green", Red = "Red", Yellow = "Yellow", Blue = "Blue",
+        Cyan = "Cyan", Orange = "Orange", Lime = "Lime", Scarlet = "Scarlet",
+        Demonic = "Demonic", Black = "Black",
     },
     Russia = {
-        Loading = "SilinHub загружается...",
+        Loading = "EnderHub загружается...",
         WriteKey = "Введи ключ сюда",
         Use = "Использовать",
         Wait = "Пожалуйста, подождите",
         General = "Общее",
-        ControlEurope = "ControlEurope",
-        Esp = "Esp",
-        Upgrade = "Прокачка",
+        Combat = "Бой",
+        Visual = "Визуал",
         Language = "Язык",
         Devs = "Создатели",
         Fly = "Полёт",
         Noclip = "Ноклип",
         SpeedHack = "Скорость",
-        SpeedMin = "Мин: 20",
-        SpeedMax = "Макс: 150",
-        EspColor = "Цвет Esp",
-        Red = "Красный", Green = "Зелёный", Blue = "Синий", Yellow = "Жёлтый", Orange = "Оранжевый",
+        Aimbot = "Аимбот",
+        TriggerBot = "Триггербот",
+        KillAura = "КиллАура",
+        Range = "Радиус (1-10)",
+        EspPlayers = "Esp Игроки",
+        EspItems = "Esp Предметы",
+        EspMonsters = "Esp Монстры",
+        EspNPC = "Esp НПС",
         InWork = "В работе",
+        Color = "Цвет",
         CreatedBy = "Создано @SilinHubInfo (telegram)",
         CreatedByShort = "Создано @SilinHubInfo (tg)",
+        Green = "Зелёный", Red = "Красный", Yellow = "Жёлтый", Blue = "Синий",
+        Cyan = "Голубой", Orange = "Оранжевый", Lime = "Салатовый", Scarlet = "Алый",
+        Demonic = "Демонический", Black = "Чёрный",
     }
 }
 
@@ -109,9 +151,25 @@ local function T(key)
     return L[CONFIG.Lang][key] or key
 end
 
--- ========== ГЛАВНЫЙ GUI ==========
+-- ========== ЦВЕТА ==========
+local COLORS = {
+    Green = Color3.fromRGB(40, 255, 40),
+    Red = Color3.fromRGB(255, 40, 40),
+    Yellow = Color3.fromRGB(255, 230, 40),
+    Blue = Color3.fromRGB(40, 120, 255),
+    Cyan = Color3.fromRGB(40, 230, 255),
+    Orange = Color3.fromRGB(255, 140, 20),
+    Lime = Color3.fromRGB(160, 255, 40),
+    Scarlet = Color3.fromRGB(255, 20, 60),
+    Demonic = Color3.fromRGB(140, 0, 200),
+    Black = Color3.fromRGB(20, 20, 20),
+}
+
+local COLOR_ORDER = {"Green","Red","Yellow","Blue","Cyan","Orange","Lime","Scarlet","Demonic","Black"}
+
+-- ========== GUI ==========
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "SilinHubUI"
+ScreenGui.Name = "EnderHubUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.IgnoreGuiInset = true
 ScreenGui.Parent = CoreGui
@@ -145,7 +203,6 @@ LoadLabel.TextSize = 20
 LoadLabel.TextTransparency = 1
 LoadLabel.Parent = LoadFrame
 
--- Плавное появление
 task.spawn(function()
     TweenService:Create(LoadFrame, TweenInfo.new(1.2), {BackgroundTransparency = 0}):Play()
     TweenService:Create(LoadStroke, TweenInfo.new(1.2), {Transparency = 0}):Play()
@@ -158,7 +215,7 @@ task.spawn(function()
     LoadFrame:Destroy()
 end)
 
--- ========== ФУНКЦИЯ СОЗДАНИЯ МЕНЮ КЛЮЧА ==========
+-- ========== KEY-МЕНЮ ==========
 local function BuildKeyMenu()
     local KeyGui = Instance.new("Frame")
     KeyGui.Size = UDim2.new(0, 380, 0, 220)
@@ -182,7 +239,7 @@ local function BuildKeyMenu()
     KTitle.Size = UDim2.new(1, 0, 0, 50)
     KTitle.Position = UDim2.new(0, 0, 0, 15)
     KTitle.BackgroundTransparency = 1
-    KTitle.Text = "SilinHub"
+    KTitle.Text = HUB_NAME
     KTitle.TextColor3 = Color3.fromRGB(200, 130, 255)
     KTitle.Font = Enum.Font.GothamBold
     KTitle.TextSize = 26
@@ -244,7 +301,6 @@ local function BuildKeyMenu()
     KUC.CornerRadius = UDim.new(0, 8)
     KUC.Parent = KUse
 
-    -- Появление
     TweenService:Create(KeyGui, TweenInfo.new(1), {BackgroundTransparency = 0}):Play()
     TweenService:Create(KS, TweenInfo.new(1), {Transparency = 0}):Play()
     TweenService:Create(KTitle, TweenInfo.new(1), {TextTransparency = 0}):Play()
@@ -257,7 +313,6 @@ local function BuildKeyMenu()
         if KBox.Text == KEY_CORRECT then
             CONFIG.Key = KBox.Text
             SaveConfig()
-            -- Закрытие
             TweenService:Create(KeyGui, TweenInfo.new(0.6), {BackgroundTransparency = 1}):Play()
             TweenService:Create(KTitle, TweenInfo.new(0.6), {TextTransparency = 1}):Play()
             TweenService:Create(KHint, TweenInfo.new(0.6), {TextTransparency = 1}):Play()
@@ -276,7 +331,7 @@ local function BuildKeyMenu()
     end)
 end
 
--- ========== ОВЕРЛЕЙ "PLEASE WAIT" ==========
+-- ========== ОВЕРЛЕЙ WAIT ==========
 local function ShowWaitOverlay(callback)
     local WaitGui = Instance.new("Frame")
     WaitGui.Size = UDim2.new(1, 0, 1, 0)
@@ -299,9 +354,7 @@ local function ShowWaitOverlay(callback)
 
     TweenService:Create(WaitGui, TweenInfo.new(0.5), {BackgroundTransparency = 0.4}):Play()
     TweenService:Create(WLabel, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
-
     task.wait(LANG_WAIT)
-
     TweenService:Create(WaitGui, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
     TweenService:Create(WLabel, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
     task.wait(0.6)
@@ -309,39 +362,48 @@ local function ShowWaitOverlay(callback)
     if callback then callback() end
 end
 
--- ========== ЛОГИКА FLY ==========
-local flyConn, flyBody
+-- ========== FLY (ФИКС) ==========
+local flyConn, flyBody, flyHumanoid
 local function ToggleFly(state)
     if flyConn then flyConn:Disconnect() flyConn = nil end
     if flyBody then flyBody:Destroy() flyBody = nil end
-    if not state then return end
     local char = LocalPlayer.Character
     if not char then return end
     local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hrp or not hum then return end
 
-    flyBody = Instance.new("BodyVelocity")
-    flyBody.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-    flyBody.Velocity = Vector3.zero
-    flyBody.Parent = hrp
+    if state then
+        flyHumanoid = hum
+        hum:ChangeState(Enum.HumanoidStateType.Physics)
+        flyBody = Instance.new("BodyVelocity")
+        flyBody.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+        flyBody.Velocity = Vector3.zero
+        flyBody.Parent = hrp
 
-    flyConn = RunService.RenderStepped:Connect(function()
-        local dir = Vector3.zero
-        if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir += Camera.CFrame.LookVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir -= Camera.CFrame.LookVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir -= Camera.CFrame.RightVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir += Camera.CFrame.RightVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then dir += Vector3.new(0,1,0) end
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then dir -= Vector3.new(0,1,0) end
-        if dir.Magnitude > 0 then
-            flyBody.Velocity = dir.Unit * 80
-        else
-            flyBody.Velocity = Vector3.zero
+        flyConn = RunService.RenderStepped:Connect(function()
+            if not char.Parent then return end
+            local dir = Vector3.zero
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir += Camera.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir -= Camera.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir -= Camera.CFrame.RightVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir += Camera.CFrame.RightVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then dir += Vector3.new(0,1,0) end
+            if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then dir -= Vector3.new(0,1,0) end
+            if dir.Magnitude > 0 then
+                flyBody.Velocity = dir.Unit * 80
+            else
+                flyBody.Velocity = Vector3.zero
+            end
+        end)
+    else
+        if flyHumanoid then
+            pcall(function() flyHumanoid:ChangeState(Enum.HumanoidStateType.GettingUp) end)
         end
-    end)
+    end
 end
 
--- ========== ЛОГИКА NOCLIP ==========
+-- ========== NOCLIP ==========
 local noclipConn
 local function ToggleNoclip(state)
     if noclipConn then noclipConn:Disconnect() noclipConn = nil end
@@ -358,7 +420,7 @@ local function ToggleNoclip(state)
     end)
 end
 
--- ========== ЛОГИКА SPEED ==========
+-- ========== SPEED ==========
 local function ApplySpeed(val)
     local char = LocalPlayer.Character
     if char and char:FindFirstChildOfClass("Humanoid") then
@@ -366,67 +428,183 @@ local function ApplySpeed(val)
     end
 end
 
--- ========== ЛОГИКА ESP ==========
-local espFolder = Instance.new("Folder")
-espFolder.Name = "SilinHubESP"
-espFolder.Parent = CoreGui
+-- ========== ESP ==========
+local espPlayersFolder = Instance.new("Folder")
+espPlayersFolder.Name = "EnderHubEspPlayers"
+espPlayersFolder.Parent = CoreGui
 
-local ESP_COLORS = {
-    Red = Color3.fromRGB(255, 40, 40),
-    Green = Color3.fromRGB(40, 255, 40),
-    Blue = Color3.fromRGB(40, 120, 255),
-    Yellow = Color3.fromRGB(255, 230, 40),
-    Orange = Color3.fromRGB(255, 140, 20),
-}
+local espMonstersFolder = Instance.new("Folder")
+espMonstersFolder.Name = "EnderHubEspMonsters"
+espMonstersFolder.Parent = CoreGui
 
-local function CreateESP(plr)
-    if plr == LocalPlayer then return end
-    if espFolder:FindFirstChild(plr.Name) then return end
+local espNPCFolder = Instance.new("Folder")
+espNPCFolder.Name = "EnderHubEspNPC"
+espNPCFolder.Parent = CoreGui
+
+local MONSTER_NAMES = {"Deer", "Owl", "Ram", "Bat", "Cat", "Elk", "Rabbit", "Wolf", "Bear", "Alpha Wolf"}
+local NPC_NAMES = {"PeltTrader", "FurnitureTrader", "ShiftySalesman", "Trader", "Merchant", "NPC"}
+
+local function CreateHighlight(folder, instance, colorName)
+    if not instance then return end
+    local name = instance.Name
+    if folder:FindFirstChild(name) then return end
     local hl = Instance.new("Highlight")
-    hl.Name = plr.Name
-    hl.FillColor = ESP_COLORS[CONFIG.EspColor] or ESP_COLORS.Red
+    hl.Name = name
+    hl.FillColor = COLORS[colorName] or COLORS.Red
     hl.OutlineColor = Color3.fromRGB(255, 255, 255)
     hl.FillTransparency = 0.5
     hl.OutlineTransparency = 0
-    hl.Adornee = plr.Character
-    hl.Parent = espFolder
-    plr.CharacterAdded:Connect(function(c)
-        task.wait(0.5)
-        if espFolder:FindFirstChild(plr.Name) then
-            espFolder[plr.Name].Adornee = c
-        end
-    end)
+    hl.Adornee = instance
+    hl.Parent = folder
 end
 
-local function RefreshESP()
-    espFolder:ClearAllChildren()
-    if not CONFIG.Esp then return end
+local function RefreshPlayersESP()
+    espPlayersFolder:ClearAllChildren()
+    if not CONFIG.EspPlayers then return end
     for _, p in ipairs(Players:GetPlayers()) do
-        CreateESP(p)
+        if p ~= LocalPlayer and p.Character then
+            CreateHighlight(espPlayersFolder, p.Character, CONFIG.EspPlayersColor)
+        end
     end
 end
 
-local function UpdateESPColor()
-    for _, hl in ipairs(espFolder:GetChildren()) do
-        if hl:IsA("Highlight") then
-            hl.FillColor = ESP_COLORS[CONFIG.EspColor] or ESP_COLORS.Red
+local function RefreshMonstersESP()
+    espMonstersFolder:ClearAllChildren()
+    if not CONFIG.EspMonsters then return end
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") then
+            for _, mname in ipairs(MONSTER_NAMES) do
+                if string.find(obj.Name:lower(), mname:lower()) then
+                    CreateHighlight(espMonstersFolder, obj, CONFIG.EspMonstersColor)
+                    break
+                end
+            end
+        end
+    end
+end
+
+local function RefreshNPCESP()
+    espNPCFolder:ClearAllChildren()
+    if not CONFIG.EspNPC then return end
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") then
+            for _, nname in ipairs(NPC_NAMES) do
+                if string.find(obj.Name:lower(), nname:lower()) then
+                    CreateHighlight(espNPCFolder, obj, CONFIG.EspNPCColor)
+                    break
+                end
+            end
         end
     end
 end
 
 Players.PlayerAdded:Connect(function(p)
-    if CONFIG.Esp then CreateESP(p) end
+    p.CharacterAdded:Connect(function(c)
+        task.wait(0.5)
+        if CONFIG.EspPlayers then
+            CreateHighlight(espPlayersFolder, c, CONFIG.EspPlayersColor)
+        end
+    end)
 end)
+
+-- ========== COMBAT ==========
+local aimbotConn, triggerConn, auraConn
+
+local function GetClosestPlayer(maxDist)
+    local closest, dist = nil, maxDist or math.huge
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character then
+            local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+            local hum = p.Character:FindFirstChildOfClass("Humanoid")
+            if hrp and hum and hum.Health > 0 then
+                local d = (hrp.Position - Camera.CFrame.Position).Magnitude
+                if d < dist then dist = d closest = p end
+            end
+        end
+    end
+    return closest
+end
+
+local function ToggleAimbot(state)
+    if aimbotConn then aimbotConn:Disconnect() aimbotConn = nil end
+    if not state then return end
+    aimbotConn = RunService.RenderStepped:Connect(function()
+        local target = GetClosestPlayer(300)
+        if target and target.Character then
+            local head = target.Character:FindFirstChild("Head")
+            if head then
+                Camera.CFrame = CFrame.new(Camera.CFrame.Position, head.Position)
+            end
+        end
+    end)
+end
+
+local function ToggleTriggerBot(state)
+    if triggerConn then triggerConn:Disconnect() triggerConn = nil end
+    if not state then return end
+    triggerConn = RunService.RenderStepped:Connect(function()
+        local target = GetClosestPlayer(50)
+        if target and target.Character then
+            local head = target.Character:FindFirstChild("Head")
+            if head then
+                local screenPoint, onScreen = Camera:WorldToViewportPoint(head.Position)
+                if onScreen then
+                    local center = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+                    local pos = Vector2.new(screenPoint.X, screenPoint.Y)
+                    if (pos - center).Magnitude < 30 then
+                        pcall(function()
+                            local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+                            if tool then tool:Activate() end
+                        end)
+                    end
+                end
+            end
+        end
+    end)
+end
+
+local function ToggleKillAura(state)
+    if auraConn then auraConn:Disconnect() auraConn = nil end
+    if not state then return end
+    auraConn = RunService.Heartbeat:Connect(function()
+        local char = LocalPlayer.Character
+        if not char then return end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character then
+                local targetHrp = p.Character:FindFirstChild("HumanoidRootPart")
+                local targetHum = p.Character:FindFirstChildOfClass("Humanoid")
+                if targetHrp and targetHum and targetHum.Health > 0 then
+                    local d = (targetHrp.Position - hrp.Position).Magnitude
+                    if d <= CONFIG.KillAuraRange then
+                        pcall(function()
+                            local tool = char:FindFirstChildOfClass("Tool")
+                            if tool then
+                                tool:Activate()
+                                if tool:FindFirstChild("Handle") then
+                                    tool.Handle.CFrame = targetHrp.CFrame
+                                end
+                            end
+                        end)
+                    end
+                end
+            end
+        end
+    end)
+end
 
 -- ========== ГЛАВНОЕ МЕНЮ ==========
 function BuildMainMenu()
     local Main = Instance.new("Frame")
     Main.Name = "MainMenu"
-    Main.Size = UDim2.new(0, 560, 0, 380)
-    Main.Position = UDim2.new(0.5, -280, 0.5, -190)
+    Main.Size = UDim2.new(0, 580, 0, 400)
+    Main.Position = UDim2.new(0.5, -290, 0.5, -200)
     Main.BackgroundColor3 = Color3.fromRGB(12, 4, 22)
     Main.BackgroundTransparency = 1
     Main.BorderSizePixel = 0
+    Main.Active = true
+    Main.Draggable = true
     Main.Parent = ScreenGui
 
     local MC = Instance.new("UICorner")
@@ -439,7 +617,6 @@ function BuildMainMenu()
     MS.Transparency = 1
     MS.Parent = Main
 
-    -- Шапка
     local Header = Instance.new("Frame")
     Header.Size = UDim2.new(1, 0, 0, 60)
     Header.BackgroundColor3 = Color3.fromRGB(20, 8, 35)
@@ -455,7 +632,7 @@ function BuildMainMenu()
     HLogo.Size = UDim2.new(1, -20, 0, 28)
     HLogo.Position = UDim2.new(0, 20, 0, 6)
     HLogo.BackgroundTransparency = 1
-    HLogo.Text = "SilinHub"
+    HLogo.Text = HUB_NAME
     HLogo.TextColor3 = Color3.fromRGB(200, 130, 255)
     HLogo.Font = Enum.Font.GothamBold
     HLogo.TextSize = 22
@@ -475,9 +652,8 @@ function BuildMainMenu()
     HSub.TextTransparency = 1
     HSub.Parent = Header
 
-    -- Левая панель вкладок
     local Sidebar = Instance.new("Frame")
-    Sidebar.Size = UDim2.new(0, 150, 1, -80)
+    Sidebar.Size = UDim2.new(0, 160, 1, -80)
     Sidebar.Position = UDim2.new(0, 10, 0, 70)
     Sidebar.BackgroundColor3 = Color3.fromRGB(18, 7, 32)
     Sidebar.BackgroundTransparency = 1
@@ -499,10 +675,9 @@ function BuildMainMenu()
     SPad.PaddingRight = UDim.new(0, 8)
     SPad.Parent = Sidebar
 
-    -- Контент
     local Content = Instance.new("Frame")
-    Content.Size = UDim2.new(1, -180, 1, -80)
-    Content.Position = UDim2.new(0, 170, 0, 70)
+    Content.Size = UDim2.new(1, -190, 1, -80)
+    Content.Position = UDim2.new(0, 180, 0, 70)
     Content.BackgroundColor3 = Color3.fromRGB(18, 7, 32)
     Content.BackgroundTransparency = 1
     Content.BorderSizePixel = 0
@@ -512,7 +687,6 @@ function BuildMainMenu()
     CC.CornerRadius = UDim.new(0, 10)
     CC.Parent = Content
 
-    -- Молнии (декор)
     local function MakeLightning(parent)
         for i = 1, 3 do
             local ln = Instance.new("Frame")
@@ -527,7 +701,6 @@ function BuildMainMenu()
     end
     MakeLightning(Main)
 
-    -- Появление
     TweenService:Create(Main, TweenInfo.new(0.8), {BackgroundTransparency = 0}):Play()
     TweenService:Create(MS, TweenInfo.new(0.8), {Transparency = 0}):Play()
     TweenService:Create(Header, TweenInfo.new(0.8), {BackgroundTransparency = 0}):Play()
@@ -536,14 +709,181 @@ function BuildMainMenu()
     TweenService:Create(HLogo, TweenInfo.new(0.8), {TextTransparency = 0}):Play()
     TweenService:Create(HSub, TweenInfo.new(0.8), {TextTransparency = 0}):Play()
 
-    -- Переменные для пересборки
-    local pages = {}
     local tabButtons = {}
     local currentTab = "General"
 
     local function ClearContent()
         for _, c in ipairs(Content:GetChildren()) do
             if not c:IsA("UICorner") then c:Destroy() end
+        end
+    end
+
+    local function MakeToggle(parent, labelKey, state, callback)
+        local row = Instance.new("Frame")
+        row.Size = UDim2.new(1, 0, 0, 50)
+        row.BackgroundColor3 = Color3.fromRGB(30, 12, 55)
+        row.BorderSizePixel = 0
+        row.Parent = parent
+        local rc = Instance.new("UICorner") rc.CornerRadius = UDim.new(0, 8) rc.Parent = row
+
+        local name = Instance.new("TextLabel")
+        name.Size = UDim2.new(1, -80, 0, 22)
+        name.Position = UDim2.new(0, 12, 0, 6)
+        name.BackgroundTransparency = 1
+        name.Text = T(labelKey)
+        name.TextColor3 = Color3.fromRGB(220, 190, 255)
+        name.Font = Enum.Font.GothamBold
+        name.TextSize = 14
+        name.TextXAlignment = Enum.TextXAlignment.Left
+        name.Parent = row
+
+        local stateLbl = Instance.new("TextLabel")
+        stateLbl.Size = UDim2.new(1, -80, 0, 14)
+        stateLbl.Position = UDim2.new(0, 12, 0, 28)
+        stateLbl.BackgroundTransparency = 1
+        stateLbl.Text = state and "ON" or "OFF"
+        stateLbl.TextColor3 = state and Color3.fromRGB(150, 255, 150) or Color3.fromRGB(255, 150, 150)
+        stateLbl.Font = Enum.Font.Gotham
+        stateLbl.TextSize = 11
+        stateLbl.TextXAlignment = Enum.TextXAlignment.Left
+        stateLbl.Parent = row
+
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(0, 50, 0, 26)
+        btn.Position = UDim2.new(1, -62, 0.5, -13)
+        btn.BackgroundColor3 = state and Color3.fromRGB(90, 30, 160) or Color3.fromRGB(40, 15, 70)
+        btn.BorderSizePixel = 0
+        btn.Text = ""
+        btn.Parent = row
+        local bc = Instance.new("UICorner") bc.CornerRadius = UDim.new(0, 13) bc.Parent = btn
+
+        local dot = Instance.new("Frame")
+        dot.Size = UDim2.new(0, 20, 0, 20)
+        dot.Position = state and UDim2.new(1, -23, 0.5, -10) or UDim2.new(0, 3, 0.5, -10)
+        dot.BackgroundColor3 = Color3.fromRGB(230, 210, 255)
+        dot.BorderSizePixel = 0
+        dot.Parent = btn
+        local dc = Instance.new("UICorner") dc.CornerRadius = UDim.new(1, 0) dc.Parent = dot
+
+        btn.MouseButton1Click:Connect(function()
+            state = not state
+            stateLbl.Text = state and "ON" or "OFF"
+            stateLbl.TextColor3 = state and Color3.fromRGB(150, 255, 150) or Color3.fromRGB(255, 150, 150)
+            btn.BackgroundColor3 = state and Color3.fromRGB(90, 30, 160) or Color3.fromRGB(40, 15, 70)
+            TweenService:Create(dot, TweenInfo.new(0.15), {
+                Position = state and UDim2.new(1, -23, 0.5, -10) or UDim2.new(0, 3, 0.5, -10)
+            }):Play()
+            callback(state)
+            SaveConfig()
+        end)
+    end
+
+    local function MakeInput(parent, labelKey, value, minV, maxV, callback)
+        local row = Instance.new("Frame")
+        row.Size = UDim2.new(1, 0, 0, 60)
+        row.BackgroundColor3 = Color3.fromRGB(30, 12, 55)
+        row.BorderSizePixel = 0
+        row.Parent = parent
+        local rc = Instance.new("UICorner") rc.CornerRadius = UDim.new(0, 8) rc.Parent = row
+
+        local lbl = Instance.new("TextLabel")
+        lbl.Size = UDim2.new(1, -24, 0, 20)
+        lbl.Position = UDim2.new(0, 12, 0, 6)
+        lbl.BackgroundTransparency = 1
+        lbl.Text = T(labelKey) .. " (" .. minV .. "-" .. maxV .. ")"
+        lbl.TextColor3 = Color3.fromRGB(220, 190, 255)
+        lbl.Font = Enum.Font.GothamBold
+        lbl.TextSize = 13
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        lbl.Parent = row
+
+        local box = Instance.new("TextBox")
+        box.Size = UDim2.new(1, -24, 0, 28)
+        box.Position = UDim2.new(0, 12, 0, 28)
+        box.BackgroundColor3 = Color3.fromRGB(20, 8, 40)
+        box.BorderSizePixel = 0
+        box.Text = tostring(value)
+        box.TextColor3 = Color3.fromRGB(230, 210, 255)
+        box.Font = Enum.Font.Gotham
+        box.TextSize = 14
+        box.Parent = row
+        local bc = Instance.new("UICorner") bc.CornerRadius = UDim.new(0, 6) bc.Parent = box
+
+        box.FocusLost:Connect(function()
+            local n = tonumber(box.Text)
+            if n then
+                n = math.clamp(n, minV, maxV)
+                box.Text = tostring(n)
+                callback(n)
+                SaveConfig()
+            else
+                box.Text = tostring(value)
+            end
+        end)
+    end
+
+    local function MakeColorRow(parent, labelKey, currentColorKey, callback)
+        local row = Instance.new("Frame")
+        row.Size = UDim2.new(1, 0, 0, 80)
+        row.BackgroundColor3 = Color3.fromRGB(30, 12, 55)
+        row.BorderSizePixel = 0
+        row.Parent = parent
+        local rc = Instance.new("UICorner") rc.CornerRadius = UDim.new(0, 8) rc.Parent = row
+
+        local lbl = Instance.new("TextLabel")
+        lbl.Size = UDim2.new(1, -24, 0, 20)
+        lbl.Position = UDim2.new(0, 12, 0, 6)
+        lbl.BackgroundTransparency = 1
+        lbl.Text = T(labelKey)
+        lbl.TextColor3 = Color3.fromRGB(220, 190, 255)
+        lbl.Font = Enum.Font.GothamBold
+        lbl.TextSize = 13
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+        lbl.Parent = row
+
+        local grid = Instance.new("Frame")
+        grid.Size = UDim2.new(1, -24, 0, 44)
+        grid.Position = UDim2.new(0, 12, 0, 28)
+        grid.BackgroundTransparency = 1
+        grid.Parent = row
+
+        local gl = Instance.new("UIGridLayout")
+        gl.CellSize = UDim2.new(0, 22, 0, 22)
+        gl.CellPadding = UDim2.new(0, 4, 0, 4)
+        gl.SortOrder = Enum.SortOrder.LayoutOrder
+        gl.Parent = grid
+
+        for i, cname in ipairs(COLOR_ORDER) do
+            local sq = Instance.new("TextButton")
+            sq.Size = UDim2.new(0, 22, 0, 22)
+            sq.BackgroundColor3 = COLORS[cname]
+            sq.BorderSizePixel = 0
+            sq.Text = ""
+            sq.LayoutOrder = i
+            sq.Parent = grid
+            local sc = Instance.new("UICorner") sc.CornerRadius = UDim.new(0, 4) sc.Parent = sq
+
+            if cname == currentColorKey then
+                local sel = Instance.new("UIStroke")
+                sel.Color = Color3.fromRGB(255, 255, 255)
+                sel.Thickness = 2
+                sel.Parent = sq
+            end
+
+            sq.MouseButton1Click:Connect(function()
+                for _, other in ipairs(grid:GetChildren()) do
+                    if other:IsA("TextButton") then
+                        local s = other:FindFirstChildOfClass("UIStroke")
+                        if s then s:Destroy() end
+                    end
+                end
+                local sel = Instance.new("UIStroke")
+                sel.Color = Color3.fromRGB(255, 255, 255)
+                sel.Thickness = 2
+                sel.Parent = sq
+                callback(cname)
+                SaveConfig()
+            end)
         end
     end
 
@@ -558,154 +898,62 @@ function BuildMainMenu()
         pad.PaddingRight = UDim.new(0, 14)
         pad.Parent = Content
 
-        -- Fly
-        local flyBtn = Instance.new("TextButton")
-        flyBtn.Size = UDim2.new(1, 0, 0, 40)
-        flyBtn.BackgroundColor3 = Color3.fromRGB(40, 15, 70)
-        flyBtn.BorderSizePixel = 0
-        flyBtn.Text = T("Fly") .. ": " .. (CONFIG.Fly and "ON" or "OFF")
-        flyBtn.TextColor3 = CONFIG.Fly and Color3.fromRGB(150, 255, 150) or Color3.fromRGB(255, 150, 150)
-        flyBtn.Font = Enum.Font.Gotham
-        flyBtn.TextSize = 14
-        flyBtn.Parent = Content
-        local fc = Instance.new("UICorner") fc.CornerRadius = UDim.new(0, 8) fc.Parent = flyBtn
-        flyBtn.MouseButton1Click:Connect(function()
-            CONFIG.Fly = not CONFIG.Fly
-            flyBtn.Text = T("Fly") .. ": " .. (CONFIG.Fly and "ON" or "OFF")
-            flyBtn.TextColor3 = CONFIG.Fly and Color3.fromRGB(150, 255, 150) or Color3.fromRGB(255, 150, 150)
-            ToggleFly(CONFIG.Fly)
-            SaveConfig()
-        end)
-
-        -- Noclip
-        local ncBtn = Instance.new("TextButton")
-        ncBtn.Size = UDim2.new(1, 0, 0, 40)
-        ncBtn.BackgroundColor3 = Color3.fromRGB(40, 15, 70)
-        ncBtn.BorderSizePixel = 0
-        ncBtn.Text = T("Noclip") .. ": " .. (CONFIG.Noclip and "ON" or "OFF")
-        ncBtn.TextColor3 = CONFIG.Noclip and Color3.fromRGB(150, 255, 150) or Color3.fromRGB(255, 150, 150)
-        ncBtn.Font = Enum.Font.Gotham
-        ncBtn.TextSize = 14
-        ncBtn.Parent = Content
-        local ncc = Instance.new("UICorner") ncc.CornerRadius = UDim.new(0, 8) ncc.Parent = ncBtn
-        ncBtn.MouseButton1Click:Connect(function()
-            CONFIG.Noclip = not CONFIG.Noclip
-            ncBtn.Text = T("Noclip") .. ": " .. (CONFIG.Noclip and "ON" or "OFF")
-            ncBtn.TextColor3 = CONFIG.Noclip and Color3.fromRGB(150, 255, 150) or Color3.fromRGB(255, 150, 150)
-            ToggleNoclip(CONFIG.Noclip)
-            SaveConfig()
-        end)
-
-        -- SpeedHack
-        local spFrame = Instance.new("Frame")
-        spFrame.Size = UDim2.new(1, 0, 0, 80)
-        spFrame.BackgroundColor3 = Color3.fromRGB(40, 15, 70)
-        spFrame.BorderSizePixel = 0
-        spFrame.Parent = Content
-        local spc = Instance.new("UICorner") spc.CornerRadius = UDim.new(0, 8) spc.Parent = spFrame
-
-        local spTitle = Instance.new("TextLabel")
-        spTitle.Size = UDim2.new(1, 0, 0, 24)
-        spTitle.Position = UDim2.new(0, 0, 0, 4)
-        spTitle.BackgroundTransparency = 1
-        spTitle.Text = T("SpeedHack")
-        spTitle.TextColor3 = Color3.fromRGB(220, 190, 255)
-        spTitle.Font = Enum.Font.GothamBold
-        spTitle.TextSize = 14
-        spTitle.Parent = spFrame
-
-        local spBox = Instance.new("TextBox")
-        spBox.Size = UDim2.new(1, -20, 0, 32)
-        spBox.Position = UDim2.new(0, 10, 0, 34)
-        spBox.BackgroundColor3 = Color3.fromRGB(25, 8, 45)
-        spBox.BorderSizePixel = 0
-        spBox.Text = tostring(CONFIG.Speed)
-        spBox.TextColor3 = Color3.fromRGB(230, 210, 255)
-        spBox.Font = Enum.Font.Gotham
-        spBox.TextSize = 14
-        spBox.Parent = spFrame
-        local spbc = Instance.new("UICorner") spbc.CornerRadius = UDim.new(0, 6) spbc.Parent = spBox
-
-        spBox.FocusLost:Connect(function()
-            local n = tonumber(spBox.Text)
-            if n then
-                n = math.clamp(n, 20, 150)
-                CONFIG.Speed = n
-                spBox.Text = tostring(n)
-                ApplySpeed(n)
-                SaveConfig()
-            else
-                spBox.Text = tostring(CONFIG.Speed)
-            end
-        end)
-
-        -- Esp
-        local espBtn = Instance.new("TextButton")
-        espBtn.Size = UDim2.new(1, 0, 0, 40)
-        espBtn.BackgroundColor3 = Color3.fromRGB(40, 15, 70)
-        espBtn.BorderSizePixel = 0
-        espBtn.Text = T("Esp") .. ": " .. (CONFIG.Esp and "ON" or "OFF")
-        espBtn.TextColor3 = CONFIG.Esp and Color3.fromRGB(150, 255, 150) or Color3.fromRGB(255, 150, 150)
-        espBtn.Font = Enum.Font.Gotham
-        espBtn.TextSize = 14
-        espBtn.Parent = Content
-        local ec = Instance.new("UICorner") ec.CornerRadius = UDim.new(0, 8) ec.Parent = espBtn
-        espBtn.MouseButton1Click:Connect(function()
-            CONFIG.Esp = not CONFIG.Esp
-            espBtn.Text = T("Esp") .. ": " .. (CONFIG.Esp and "ON" or "OFF")
-            espBtn.TextColor3 = CONFIG.Esp and Color3.fromRGB(150, 255, 150) or Color3.fromRGB(255, 150, 150)
-            RefreshESP()
-            SaveConfig()
-        end)
-
-        -- Цвета Esp
-        local colorTitle = Instance.new("TextLabel")
-        colorTitle.Size = UDim2.new(1, 0, 0, 22)
-        colorTitle.BackgroundTransparency = 1
-        colorTitle.Text = T("EspColor")
-        colorTitle.TextColor3 = Color3.fromRGB(200, 160, 240)
-        colorTitle.Font = Enum.Font.Gotham
-        colorTitle.TextSize = 13
-        colorTitle.Parent = Content
-
-        local colorRow = Instance.new("Frame")
-        colorRow.Size = UDim2.new(1, 0, 0, 36)
-        colorRow.BackgroundTransparency = 1
-        colorRow.Parent = Content
-        local crl = Instance.new("UIListLayout")
-        crl.FillDirection = Enum.FillDirection.Horizontal
-        crl.Padding = UDim.new(0, 8)
-        crl.Parent = colorRow
-
-        local colorKeys = {"Red", "Green", "Blue", "Yellow", "Orange"}
-        for _, key in ipairs(colorKeys) do
-            local cbtn = Instance.new("TextButton")
-            cbtn.Size = UDim2.new(0, 90, 1, 0)
-            cbtn.BackgroundColor3 = ESP_COLORS[key]
-            cbtn.BorderSizePixel = 0
-            cbtn.Text = T(key)
-            cbtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            cbtn.Font = Enum.Font.GothamBold
-            cbtn.TextSize = 12
-            cbtn.Parent = colorRow
-            local cbc = Instance.new("UICorner") cbc.CornerRadius = UDim.new(0, 6) cbc.Parent = cbtn
-            cbtn.MouseButton1Click:Connect(function()
-                CONFIG.EspColor = key
-                UpdateESPColor()
-                SaveConfig()
-            end)
-        end
+        MakeToggle(Content, "Fly", CONFIG.Fly, function(s) CONFIG.Fly = s ToggleFly(s) end)
+        MakeToggle(Content, "Noclip", CONFIG.Noclip, function(s) CONFIG.Noclip = s ToggleNoclip(s) end)
+        MakeInput(Content, "SpeedHack", CONFIG.Speed, 20, 150, function(v) CONFIG.Speed = v ApplySpeed(v) end)
     end
 
-    local function BuildInWork()
+    local function BuildCombat()
         ClearContent()
-        local lbl = Instance.new("TextLabel")
-        lbl.Size = UDim2.new(1, 0, 1, 0)
-        lbl.BackgroundTransparency = 1        lbl.Text = T("InWork")
-        lbl.TextColor3 = Color3.fromRGB(150, 100, 200)
-        lbl.Font = Enum.Font.GothamBold
-        lbl.TextSize = 22
-        lbl.Parent = Content
+        local list = Instance.new("UIListLayout")
+        list.Padding = UDim.new(0, 10)
+        list.Parent = Content
+        local pad = Instance.new("UIPadding")
+        pad.PaddingTop = UDim.new(0, 14)
+        pad.PaddingLeft = UDim.new(0, 14)
+        pad.PaddingRight = UDim.new(0, 14)
+        pad.Parent = Content
+
+        MakeToggle(Content, "Aimbot", CONFIG.Aimbot, function(s) CONFIG.Aimbot = s ToggleAimbot(s) end)
+        MakeToggle(Content, "TriggerBot", CONFIG.TriggerBot, function(s) CONFIG.TriggerBot = s ToggleTriggerBot(s) end)
+        MakeToggle(Content, "KillAura", CONFIG.KillAura, function(s) CONFIG.KillAura = s ToggleKillAura(s) end)
+        MakeInput(Content, "Range", CONFIG.KillAuraRange, 1, 10, function(v) CONFIG.KillAuraRange = v end)
+    end
+
+    local function BuildVisual()
+        ClearContent()
+        local list = Instance.new("UIListLayout")
+        list.Padding = UDim.new(0, 10)
+        list.Parent = Content
+        local pad = Instance.new("UIPadding")
+        pad.PaddingTop = UDim.new(0, 14)
+        pad.PaddingLeft = UDim.new(0, 14)
+        pad.PaddingRight = UDim.new(0, 14)
+        pad.Parent = Content
+
+        MakeToggle(Content, "EspPlayers", CONFIG.EspPlayers, function(s) CONFIG.EspPlayers = s RefreshPlayersESP() end)
+        MakeColorRow(Content, "EspPlayers", CONFIG.EspPlayersColor, function(c) CONFIG.EspPlayersColor = c RefreshPlayersESP() end)
+
+        local inWork = Instance.new("Frame")
+        inWork.Size = UDim2.new(1, 0, 0, 50)
+        inWork.BackgroundColor3 = Color3.fromRGB(30, 12, 55)
+        inWork.BorderSizePixel = 0
+        inWork.Parent = Content
+        local iwc = Instance.new("UICorner") iwc.CornerRadius = UDim.new(0, 8) iwc.Parent = inWork
+        local iwl = Instance.new("TextLabel")
+        iwl.Size = UDim2.new(1, 0, 1, 0)
+        iwl.BackgroundTransparency = 1
+        iwl.Text = T("EspItems") .. " — " .. T("InWork")
+        iwl.TextColor3 = Color3.fromRGB(150, 100, 200)
+        iwl.Font = Enum.Font.GothamBold
+        iwl.TextSize = 13
+        iwl.Parent = inWork
+
+        MakeToggle(Content, "EspMonsters", CONFIG.EspMonsters, function(s) CONFIG.EspMonsters = s RefreshMonstersESP() end)
+        MakeColorRow(Content, "EspMonsters", CONFIG.EspMonstersColor, function(c) CONFIG.EspMonstersColor = c RefreshMonstersESP() end)
+
+        MakeToggle(Content, "EspNPC", CONFIG.EspNPC, function(s) CONFIG.EspNPC = s RefreshNPCESP() end)
+        MakeColorRow(Content, "EspNPC", CONFIG.EspNPCColor, function(c) CONFIG.EspNPCColor = c RefreshNPCESP() end)
     end
 
     local function BuildLanguage()
@@ -767,9 +1015,8 @@ function BuildMainMenu()
             end
         end
         if tabName == "General" then BuildGeneral()
-        elseif tabName == "ControlEurope" then BuildInWork()
-        elseif tabName == "Esp" then BuildInWork()
-        elseif tabName == "Upgrade" then BuildInWork()
+        elseif tabName == "Combat" then BuildCombat()
+        elseif tabName == "Visual" then BuildVisual()
         elseif tabName == "Language" then BuildLanguage()
         elseif tabName == "Devs" then BuildDevs()
         end
@@ -791,20 +1038,51 @@ function BuildMainMenu()
     end
 
     MakeTab("General", "General")
-    MakeTab("ControlEurope", "ControlEurope")
-    MakeTab("Esp", "Esp")
-    MakeTab("Upgrade", "Upgrade")
+    MakeTab("Combat", "Combat")
+    MakeTab("Visual", "Visual")
     MakeTab("Language", "Language")
     MakeTab("Devs", "Devs")
 
     SwitchTab("General")
 
-    -- Применяем сохранённые настройки
+    -- Кнопка закрытия
+    local toggleBtn = Instance.new("ImageButton")
+    toggleBtn.Name = "EnderHubToggle"
+    toggleBtn.Size = UDim2.new(0, 60, 0, 60)
+    toggleBtn.Position = UDim2.new(0, 20, 0.5, -30)
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(15, 5, 25)
+    toggleBtn.BorderSizePixel = 0
+    toggleBtn.Image = "https://i.postimg.cc/jjK8WrRv/diting-result-d5d4d45cbaa511f1b5fa420a27eb69d1-1.jpg"
+    toggleBtn.Active = true
+    toggleBtn.Draggable = true
+    toggleBtn.Parent = ScreenGui
+
+    local tc = Instance.new("UICorner") tc.CornerRadius = UDim.new(0, 10) tc.Parent = toggleBtn
+    local ts = Instance.new("UIStroke") ts.Color = Color3.fromRGB(220, 30, 40) ts.Thickness = 2 ts.Parent = toggleBtn
+
+    local menuVisible = true
+    toggleBtn.MouseButton1Click:Connect(function()
+        menuVisible = not menuVisible
+        if menuVisible then
+            Main.Visible = true
+            TweenService:Create(Main, TweenInfo.new(0.3), {BackgroundTransparency = 0}):Play()
+        else
+            TweenService:Create(Main, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+            task.wait(0.32)
+            Main.Visible = false
+        end
+    end)
+
     task.spawn(function()
         if CONFIG.Fly then ToggleFly(true) end
         if CONFIG.Noclip then ToggleNoclip(true) end
         ApplySpeed(CONFIG.Speed)
-        RefreshESP()
+        RefreshPlayersESP()
+        RefreshMonstersESP()
+        RefreshNPCESP()
+        if CONFIG.Aimbot then ToggleAimbot(true) end
+        if CONFIG.TriggerBot then ToggleTriggerBot(true) end
+        if CONFIG.KillAura then ToggleKillAura(true) end
     end)
 end
 
